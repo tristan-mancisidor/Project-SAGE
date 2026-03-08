@@ -21,7 +21,7 @@ What exists:
 - [x] Monte Carlo engine (simplified)
 - [x] Gap analysis logic
 - [x] Advisor approval loop
-- [ ] Render deployment
+- [x] Render deployment
 
 Update this checklist as features are completed.
 
@@ -238,17 +238,27 @@ Render free tier. Same pattern as Receipt Ranger.
 
 ---
 
+## Lessons Learned
+
+- **Sanitize tool_use inputs**: Claude API may return tool inputs as JSON strings instead of dicts. Always wrap dict-expected inputs with `_ensure_dict()` before calling `.get()` on them.
+- **VITE_API_URL must be explicit**: Never rely on empty string as API base URL. Always use `import.meta.env.VITE_API_URL` with a fallback in production builds.
+- **Free tier cold starts**: Render free tier spins down after inactivity. Frontend must show a warm-up state (60s timeout) and preserve file state through failed attempts.
+- **git push is not automatic**: After commits, always verify push succeeded with `git log --oneline`. Node.js required locally for `npm run build` verification.
+
+---
+
 ## What To Build Next (Priority Order)
 
-1. Project scaffolding (folder structure, requirements.txt, package.json)
-2. FastAPI app with `/upload` and `/analyze` endpoints
-3. PDF extraction tool
-4. Agentic loop in `sage.py`
-5. React upload UI with drag-and-drop
-6. Monte Carlo engine
-7. Gap analysis logic
-8. Agent feed (live reasoning transparency)
-9. Approval loop
-10. Report viewer
-11. Hypothetical client data seeding
-12. Render deployment
+1. ~~Project scaffolding~~ ✓
+2. ~~FastAPI app with `/upload` and `/analyze` endpoints~~ ✓
+3. ~~PDF extraction tool~~ ✓
+4. ~~Agentic loop in `sage.py`~~ ✓
+5. ~~React upload UI with drag-and-drop~~ ✓
+6. ~~Monte Carlo engine~~ ✓
+7. ~~Gap analysis logic~~ ✓
+8. ~~Agent feed (live reasoning transparency)~~ ✓
+9. ~~Approval loop~~ ✓
+10. ~~Report viewer~~ ✓
+11. ~~Hypothetical client data seeding~~ ✓
+12. ~~Render deployment~~ ✓
+13. Fix markdown rendering in ReportViewer — convert **bold**, ### headers, and --- dividers to proper HTML using a markdown parser (marked.js or similar)
