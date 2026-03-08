@@ -27,6 +27,9 @@ function App() {
 
     try {
       const fileIds = uploadedFiles.map(f => f.file_id)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 120000)
+
       const response = await fetch(`${API_BASE}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -35,11 +38,21 @@ function App() {
           demo_mode: demoMode,
           conversation_history: [],
         }),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
 
       if (!response.ok) throw new Error(`Analysis failed: ${response.statusText}`)
 
-      const data = await response.json()
+      const text = await response.text()
+      if (!text) throw new Error('SAGE is warming up — please try again in a moment.')
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch {
+        throw new Error('SAGE is warming up — please try again in a moment.')
+      }
       setAgentEvents(data.tool_calls || [])
       setConversationHistory(data.conversation_history || [])
       setReport({
@@ -48,7 +61,12 @@ function App() {
       })
       setStage('report')
     } catch (err) {
-      setError(err.message)
+      if (err.name === 'AbortError') {
+        setError('SAGE is warming up — please try again in a moment.')
+      } else {
+        setError(err.message)
+      }
+      setStage('upload')
     } finally {
       setIsLoading(false)
     }
@@ -201,12 +219,6 @@ function App() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-6 py-6 text-center text-sm text-gray-400">
-          Project SAGE — Built by Tristan Mancisidor
-        </div>
-      </footer>
     </div>
   )
 }

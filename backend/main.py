@@ -54,14 +54,25 @@ async def upload_document(file: UploadFile = File(...)):
 async def analyze(request: AnalyzeRequest):
     from agent.sage import run_sage_loop
 
-    result = await run_sage_loop(
-        file_ids=request.file_ids,
-        uploaded_files=uploaded_files,
-        demo_mode=request.demo_mode,
-        message=request.message,
-        conversation_history=request.conversation_history,
-    )
-    return result
+    try:
+        result = await run_sage_loop(
+            file_ids=request.file_ids,
+            uploaded_files=uploaded_files,
+            demo_mode=request.demo_mode,
+            message=request.message,
+            conversation_history=request.conversation_history,
+        )
+        return result
+    except Exception as e:
+        return JSONResponse(
+            status_code=200,
+            content={
+                "response": f"Analysis encountered an error: {str(e)}. Please try again.",
+                "status": "error",
+                "tool_calls": [],
+                "conversation_history": request.conversation_history or [],
+            },
+        )
 
 
 @app.post("/approve", response_model=AnalyzeResponse)

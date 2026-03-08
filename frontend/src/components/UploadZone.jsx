@@ -4,6 +4,7 @@ const API_BASE = ''
 
 function UploadZone({ onFilesUploaded }) {
   const [files, setFiles] = useState([])
+  const [pendingFiles, setPendingFiles] = useState([])
   const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
@@ -25,22 +26,23 @@ function UploadZone({ onFilesUploaded }) {
       f => f.type === 'application/pdf'
     )
     if (droppedFiles.length > 0) {
-      uploadFiles(droppedFiles)
+      setPendingFiles(prev => [...prev, ...droppedFiles])
     }
   }
 
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files)
     if (selectedFiles.length > 0) {
-      uploadFiles(selectedFiles)
+      setPendingFiles(prev => [...prev, ...selectedFiles])
     }
+    e.target.value = ''
   }
 
-  const uploadFiles = async (newFiles) => {
+  const handleConfirmUpload = async () => {
     setUploading(true)
     const uploaded = []
 
-    for (const file of newFiles) {
+    for (const file of pendingFiles) {
       try {
         const formData = new FormData()
         formData.append('file', file)
@@ -60,7 +62,12 @@ function UploadZone({ onFilesUploaded }) {
     const allFiles = [...files, ...uploaded]
     setFiles(allFiles)
     onFilesUploaded(allFiles)
+    setPendingFiles([])
     setUploading(false)
+  }
+
+  const removePendingFile = (index) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -97,7 +104,38 @@ function UploadZone({ onFilesUploaded }) {
         />
       </div>
 
-      {/* Uploaded file list */}
+      {/* Pending files awaiting confirmation */}
+      {pendingFiles.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {pendingFiles.map((file, i) => (
+            <div
+              key={`pending-${i}`}
+              className="flex items-center gap-3 bg-sage-50 border border-sage-200 rounded-lg px-4 py-2"
+            >
+              <svg className="w-4 h-4 text-sage-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-gray-700 text-sm">{file.name}</span>
+              <span className="text-sage-600 text-xs font-medium ml-auto">Ready</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); removePendingFile(i) }}
+                className="text-gray-400 hover:text-red-500 text-xs ml-2"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={handleConfirmUpload}
+            disabled={uploading}
+            className="w-full mt-3 bg-sage-600 hover:bg-sage-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {uploading ? 'Uploading...' : `Begin Analysis (${pendingFiles.length} file${pendingFiles.length > 1 ? 's' : ''})`}
+          </button>
+        </div>
+      )}
+
+      {/* Already uploaded file list */}
       {files.length > 0 && (
         <div className="mt-4 space-y-2">
           {files.map((file, i) => (
@@ -105,9 +143,11 @@ function UploadZone({ onFilesUploaded }) {
               key={file.file_id || i}
               className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-2"
             >
-              <span className="text-sage-600 text-sm font-mono">PDF</span>
+              <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
               <span className="text-gray-700 text-sm">{file.filename}</span>
-              <span className="ml-auto text-green-600 text-xs">Uploaded</span>
+              <span className="ml-auto text-green-600 text-xs font-medium">Uploaded</span>
             </div>
           ))}
         </div>

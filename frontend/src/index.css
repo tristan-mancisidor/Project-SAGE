@@ -3,10 +3,12 @@
 @tailwind utilities;
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
+h1, h2, h3, h4, h5, h6,
 .prose h1, .prose h2, .prose h3 {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
   font-weight: 700;
 }
 
