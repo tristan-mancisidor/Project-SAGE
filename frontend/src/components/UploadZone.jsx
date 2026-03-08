@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react'
 
-const API_BASE = ''
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
-function UploadZone({ onFilesUploaded }) {
-  const [files, setFiles] = useState([])
+function UploadZone({ onFilesUploaded, uploadedFiles = [] }) {
+  const [files, setFiles] = useState(uploadedFiles)
   const [pendingFiles, setPendingFiles] = useState([])
   const [isDragging, setIsDragging] = useState(false)
   const [uploading, setUploading] = useState(false)

@@ -4,7 +4,7 @@ import AgentFeed from './components/AgentFeed'
 import ReportViewer from './components/ReportViewer'
 import ApprovalPanel from './components/ApprovalPanel'
 
-const API_BASE = ''
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 function App() {
   const [stage, setStage] = useState('upload') // upload | analyzing | report
@@ -13,6 +13,7 @@ function App() {
   const [report, setReport] = useState(null)
   const [conversationHistory, setConversationHistory] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState(null)
 
   const handleFilesUploaded = (files) => {
@@ -22,6 +23,7 @@ function App() {
   const handleStartAnalysis = async (demoMode = true) => {
     setStage('analyzing')
     setIsLoading(true)
+    setIsConnecting(true)
     setError(null)
     setAgentEvents([])
 
@@ -42,6 +44,7 @@ function App() {
       })
 
       clearTimeout(timeoutId)
+      setIsConnecting(false)
 
       if (!response.ok) throw new Error(`Analysis failed: ${response.statusText}`)
 
@@ -69,6 +72,7 @@ function App() {
       setStage('upload')
     } finally {
       setIsLoading(false)
+      setIsConnecting(false)
     }
   }
 
@@ -111,6 +115,7 @@ function App() {
     setReport(null)
     setConversationHistory([])
     setError(null)
+    setIsConnecting(false)
   }
 
   return (
@@ -155,7 +160,7 @@ function App() {
               </p>
             </div>
 
-            <UploadZone onFilesUploaded={handleFilesUploaded} />
+            <UploadZone onFilesUploaded={handleFilesUploaded} uploadedFiles={uploadedFiles} />
 
             <div className="mt-8 flex flex-col gap-3">
               <button
@@ -181,13 +186,21 @@ function App() {
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Sage is analyzing...
+                {isConnecting ? 'Connecting to SAGE...' : 'Sage is analyzing...'}
               </h2>
               <p className="text-gray-500">
-                Reasoning through client data step by step
+                {isConnecting
+                  ? 'This may take up to 60 seconds on first load...'
+                  : 'Reasoning through client data step by step'
+                }
               </p>
+              {isConnecting && (
+                <div className="mt-6 flex justify-center">
+                  <div className="w-8 h-8 border-4 border-sage-200 border-t-sage-600 rounded-full animate-spin" />
+                </div>
+              )}
             </div>
-            <AgentFeed events={agentEvents} isLoading={isLoading} />
+            {!isConnecting && <AgentFeed events={agentEvents} isLoading={isLoading} />}
           </div>
         )}
 
