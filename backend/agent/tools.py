@@ -104,6 +104,23 @@ TOOL_DEFINITIONS = [
 ]
 
 
+def _ensure_dict(value) -> dict:
+    """Ensure a value is a dict. Parse JSON strings, wrap other types."""
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+            if isinstance(parsed, dict):
+                return parsed
+        except (json.JSONDecodeError, ValueError):
+            pass
+        return {"raw": value}
+    if value is None:
+        return {}
+    return {"raw": str(value)}
+
+
 # --- Tool execution dispatch ---
 
 def execute_tool(tool_name: str, tool_input: dict, uploaded_files: dict) -> str:
@@ -143,7 +160,7 @@ def _handle_parse_statement(tool_input: dict) -> str:
 
 
 def _handle_analyze_net_worth(tool_input: dict) -> str:
-    client_data = tool_input["client_data"]
+    client_data = _ensure_dict(tool_input.get("client_data"))
     accounts = client_data.get("accounts", [])
     real_estate = client_data.get("real_estate", [])
     equity_comp = client_data.get("equity_compensation", [])
@@ -178,7 +195,7 @@ def _handle_analyze_net_worth(tool_input: dict) -> str:
 
 
 def _handle_analyze_income_expenses(tool_input: dict) -> str:
-    client_data = tool_input["client_data"]
+    client_data = _ensure_dict(tool_input.get("client_data"))
     income_sources = client_data.get("income_sources", [])
     expenses = client_data.get("expenses", [])
 
@@ -217,17 +234,17 @@ def _handle_monte_carlo(tool_input: dict) -> str:
 
 
 def _handle_planning_gaps(tool_input: dict) -> str:
-    client_data = tool_input["client_data"]
-    monte_carlo = tool_input.get("monte_carlo_results", {})
+    client_data = _ensure_dict(tool_input.get("client_data"))
+    monte_carlo = _ensure_dict(tool_input.get("monte_carlo_results"))
     gaps = _identify_gaps(client_data, monte_carlo)
     return json.dumps(gaps)
 
 
 def _handle_generate_report(tool_input: dict) -> str:
-    client_data = tool_input["client_data"]
-    gap_analysis = tool_input["gap_analysis"]
-    monte_carlo = tool_input.get("monte_carlo_results", {})
-    plan_type = tool_input["plan_type"]
+    client_data = _ensure_dict(tool_input.get("client_data"))
+    gap_analysis = _ensure_dict(tool_input.get("gap_analysis"))
+    monte_carlo = _ensure_dict(tool_input.get("monte_carlo_results"))
+    plan_type = tool_input.get("plan_type", "new_client")
 
     report = {
         "plan_type": plan_type,
