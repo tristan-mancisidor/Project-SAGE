@@ -30,10 +30,9 @@ The system is split into a FastAPI backend and a React frontend. On the backend,
 
 ## Demo
 
-- **Backend:** [project-sage.onrender.com](https://project-sage.onrender.com)
-- **Frontend:** [project-sage-frontend.onrender.com](https://project-sage-frontend.onrender.com)
+Demo available upon request — reach out via [LinkedIn](https://www.linkedin.com/in/tristanmancisidor) or tristan.mancisidor@gmail.com.
 
-The demo uses a synthetic high-net-worth client profile (equity compensation, deferred comp, retirement planning gap) to showcase the full workflow.
+The demo uses a synthetic high-net-worth client profile (equity compensation, deferred comp, retirement planning gap) to showcase the full agent workflow end-to-end.
 
 ## Status
 
