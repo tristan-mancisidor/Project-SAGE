@@ -156,28 +156,22 @@ function App() {
                 Financial Plan Analysis
               </h2>
               <p className="text-gray-500">
-                Upload client documents or run the demo with hypothetical data
+                Upload client documents to begin
               </p>
             </div>
 
             <UploadZone onFilesUploaded={handleFilesUploaded} uploadedFiles={uploadedFiles} />
 
-            <div className="mt-8 flex flex-col gap-3">
-              <button
-                onClick={() => handleStartAnalysis(true)}
-                className="w-full bg-sage-600 hover:bg-sage-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-              >
-                Run Demo Analysis (James & Sarah Chen)
-              </button>
-              {uploadedFiles.length > 0 && (
+            {uploadedFiles.length > 0 && (
+              <div className="mt-8">
                 <button
                   onClick={() => handleStartAnalysis(false)}
-                  className="w-full bg-gray-700 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                  className="w-full bg-sage-600 hover:bg-sage-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
                 >
-                  Analyze Uploaded Documents ({uploadedFiles.length} files)
+                  Run Analysis ({uploadedFiles.length} file{uploadedFiles.length > 1 ? 's' : ''})
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 

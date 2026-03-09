@@ -261,4 +261,4 @@ Render free tier. Same pattern as Receipt Ranger.
 10. ~~Report viewer~~ ✓
 11. ~~Hypothetical client data seeding~~ ✓
 12. ~~Render deployment~~ ✓
-13. Fix markdown rendering in ReportViewer — convert **bold**, ### headers, and --- dividers to proper HTML using a markdown parser (marked.js or similar)
+13. ~~Fix markdown rendering in ReportViewer~~ ✓ (react-markdown)
