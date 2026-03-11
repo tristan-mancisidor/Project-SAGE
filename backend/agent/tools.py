@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 
-from parsers.pdf_extractor import extract_pdf_text
 from parsers.statement_parser import parse_financial_statement
 from agent.monte_carlo import run_monte_carlo_simulation
 
@@ -13,13 +12,26 @@ from agent.monte_carlo import run_monte_carlo_simulation
 TOOL_DEFINITIONS = [
     {
         "name": "extract_pdf_text",
-        "description": "Extract raw text from an uploaded PDF document",
+        "description": "Extract and parse financial data from one or more uploaded PDF documents using AI. Handles brokerage statements, tax returns (1040), paystubs, W-2s, insurance policies, estate documents, equity compensation schedules, bank statements, and mortgage statements. Pass all file_ids at once to parse all documents in a single call.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "file_id": {"type": "string", "description": "ID of the uploaded file"}
+                "file_ids": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of all uploaded file IDs to parse simultaneously."
+                }
             },
-            "required": ["file_id"]
+            "required": ["file_ids"]
+        }
+    },
+    {
+        "name": "get_demo_client_data",
+        "description": "Demo mode only: retrieve the pre-loaded hypothetical client profile for James & Sarah Chen. Call this first in demo mode instead of extract_pdf_text.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": []
         }
     },
     {
@@ -127,6 +139,8 @@ def execute_tool(tool_name: str, tool_input: dict, uploaded_files: dict) -> str:
     """Execute a tool by name and return the result as a string."""
     if tool_name == "extract_pdf_text":
         return _handle_extract_pdf(tool_input, uploaded_files)
+    elif tool_name == "get_demo_client_data":
+        return _handle_get_demo_data()
     elif tool_name == "parse_financial_statement":
         return _handle_parse_statement(tool_input)
     elif tool_name == "analyze_net_worth":
@@ -144,12 +158,40 @@ def execute_tool(tool_name: str, tool_input: dict, uploaded_files: dict) -> str:
 
 
 def _handle_extract_pdf(tool_input: dict, uploaded_files: dict) -> str:
-    file_id = tool_input["file_id"]
-    if file_id not in uploaded_files:
-        return json.dumps({"error": f"File {file_id} not found"})
-    file_path = uploaded_files[file_id]["path"]
-    text = extract_pdf_text(file_path)
-    return json.dumps({"file_id": file_id, "text": text, "char_count": len(text)})
+    from parsers.ai_statement_parser import classify_and_parse_document
+    from parsers.pdf_extractor import is_text_extractable, extract_pdf_pages_as_images, extract_pdf_text
+
+    file_ids = tool_input.get("file_ids") or []
+    if not file_ids and tool_input.get("file_id"):
+        file_ids = [tool_input["file_id"]]
+    if not file_ids:
+        return json.dumps({"error": "No file_ids provided"})
+
+    results = []
+    for fid in file_ids:
+        if fid not in uploaded_files:
+            results.append({"file_id": fid, "error": "File not found"})
+            continue
+        file_info = uploaded_files[fid]
+        file_path = file_info["path"]
+        file_name = file_info["filename"]
+
+        text = extract_pdf_text(file_path)
+        page_images = None
+        if not is_text_extractable(file_path):
+            page_images = extract_pdf_pages_as_images(file_path, max_pages=5)
+
+        parsed = classify_and_parse_document(text, file_name, page_images)
+        parsed["file_id"] = fid
+        parsed["filename"] = file_name
+        results.append(parsed)
+
+    return json.dumps({"documents": results, "count": len(results)})
+
+
+def _handle_get_demo_data() -> str:
+    from agent.demo_data import DEMO_CLIENT_DATA
+    return json.dumps(DEMO_CLIENT_DATA)
 
 
 def _handle_parse_statement(tool_input: dict) -> str:

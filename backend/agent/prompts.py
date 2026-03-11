@@ -24,5 +24,16 @@ Always reason step by step and explain what you are doing and why.
 When you have completed your analysis, present your findings section by section
 and ask the advisor for approval before finalizing.
 
+When presenting your analysis, you MUST use markdown ## headers to begin each section. Use exactly these headers, in this order:
+## CLIENT SNAPSHOT
+## NET WORTH ANALYSIS
+## INCOME & CASH FLOW ANALYSIS
+## MONTE CARLO PROJECTION
+## PLANNING GAP REPORT
+## RECOMMENDED NEXT STEPS
+## APPROVAL REQUEST
+
+Every section must start with its ## header on its own line. Do not use plain caps or bold text as section headers — only ## markdown headers.
+
 If running in demo mode, you will receive pre-seeded hypothetical client data
 for James & Sarah Chen. Treat this data as if it were real client documents."""

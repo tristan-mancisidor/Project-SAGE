@@ -172,6 +172,18 @@ function App() {
                 </button>
               </div>
             )}
+
+            <div className="mt-8 text-center">
+              <p className="text-gray-400 text-sm mb-3">— or try the demo —</p>
+              <button
+                onClick={() => handleStartAnalysis(true)}
+                disabled={isLoading}
+                className="bg-white border border-sage-300 hover:border-sage-500 text-sage-700 font-medium py-2.5 px-8 rounded-lg transition-colors text-sm disabled:opacity-50"
+              >
+                Run Demo with James & Sarah Chen →
+              </button>
+              <p className="text-gray-400 text-xs mt-2">Hypothetical client — no documents needed</p>
+            </div>
           </div>
         )}
 

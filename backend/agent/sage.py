@@ -13,7 +13,6 @@ import anthropic
 
 from agent.prompts import load_system_prompt
 from agent.tools import TOOL_DEFINITIONS, execute_tool
-from agent.demo_data import DEMO_CLIENT_DATA
 from models.schemas import AnalyzeResponse
 
 
@@ -40,8 +39,6 @@ async def run_sage_loop(
     if not messages:
         # First turn — build initial user message
         user_content = _build_initial_message(file_ids, demo_mode, message)
-        if demo_mode:
-            user_content += f"\n\nHere is the complete client data for James & Sarah Chen:\n{json.dumps(DEMO_CLIENT_DATA, indent=2)}"
         messages.append({"role": "user", "content": user_content})
     elif message:
         # Continuation — advisor follow-up
@@ -111,28 +108,24 @@ async def run_sage_loop(
 
 
 def _build_initial_message(file_ids: list[str], demo_mode: bool, message: str | None) -> str:
-    """Build the initial user message for the first turn."""
     if demo_mode:
         return (
             "I'm running in demo mode with the hypothetical client profile for James & Sarah Chen. "
-            "Please begin your full analysis. Start by reviewing the client data, then work through "
-            "net worth analysis, income and cash flow, Monte Carlo projections, and gap identification. "
-            "Present your findings section by section and ask for my approval before finalizing.\n\n"
-            f"Additional context: {message}" if message else
-            "I'm running in demo mode with the hypothetical client profile for James & Sarah Chen. "
-            "Please begin your full analysis. Start by reviewing the client data, then work through "
+            "Start by calling get_demo_client_data to load the client profile, then work through "
             "net worth analysis, income and cash flow, Monte Carlo projections, and gap identification. "
             "Present your findings section by section and ask for my approval before finalizing."
         )
-
     if file_ids:
-        file_list = ", ".join(file_ids)
-        base = f"I've uploaded the following documents for analysis: {file_list}. "
-        base += "Please extract and parse each document, then perform a comprehensive financial plan analysis."
-        if message:
-            base += f"\n\nAdditional context: {message}"
-        return base
-
+        count = len(file_ids)
+        return (
+            f"I've uploaded {count} document{'s' if count > 1 else ''} for analysis. "
+            f"Call extract_pdf_text with all file_ids at once: {file_ids}. "
+            f"After parsing, synthesize all documents into a unified client profile — "
+            f"reconcile any conflicting data between documents and note discrepancies. "
+            f"Then perform a comprehensive financial plan analysis following the CFP six-step process. "
+            f"Present findings section by section and ask for approval before finalizing."
+            + (f"\n\nAdditional advisor context: {message}" if message else "")
+        )
     return message or "Please begin the financial planning analysis."
 
 
@@ -155,7 +148,10 @@ def _serialize_content(content_blocks) -> list[dict]:
 def _summarize_input(tool_name: str, tool_input: dict) -> str:
     """Create a short summary of tool input for the reasoning feed."""
     if tool_name == "extract_pdf_text":
-        return f"Extracting text from file {tool_input.get('file_id', 'unknown')}"
+        file_ids = tool_input.get("file_ids", [tool_input.get("file_id", "unknown")])
+        return f"Parsing {len(file_ids)} document(s) with AI extraction"
+    elif tool_name == "get_demo_client_data":
+        return "Loading demo client profile"
     elif tool_name == "parse_financial_statement":
         return f"Parsing {tool_input.get('document_type', 'document')}"
     elif tool_name == "analyze_net_worth":
